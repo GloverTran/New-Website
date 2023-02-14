@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+    <link rel="stylesheet" href="style.css">
+    <link rel="shortcut icon" href="#">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+    <script src="http://code.jquery.com/jquery-1.12.0.min.js"></script>
+    <title>Project 4-Search</title>
+</head>
+<body>
+    <header >
+        <h1 class="title">My News</h1>
+        <div class="main-art">
+            <!-- Trigger the modal with a button -->
+            <button type="button" id="search-btn"class="btn btn-info btn-lg" data-toggle="modal" data-target="#myModal">
+                <li class="w3-xxlarge w3-ul"><i class="fa fa-search"></i></li>
+            </button>
+            <!-- Modal -->
+            <div class="modal fade" id="myModal" role="dialog">
+                <div class="modal-dialog">
+                    <!-- Modal content-->
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h3 style="text-align: center;">Search News</h3>
+                                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                            </div>
+                            <div class="modal-body">
+                                <form action="#">
+                                <div class="form">
+                                    <label for="searchKeywork">Keywork:</label>
+                                    <input type="text" id="searchKeywork" name="searchKey" placeholder="Search News">
+                                </div>
+                                <div class="form">
+                                    <label for="timeFrom"><span class="glyphicon glyphicon-calendar"></span>From:</label>
+                                    <input type="date" id="timeFrom" name="timeFrom" >
+                                </div>
+                                <div class="form">
+                                    <label for="timeTo"><span class="glyphicon glyphicon-calendar"></span>To:</label>
+                                    <input type="date" id="timeTo" name="timeTo">
+                                </div>
+                                </form>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="submit" class="btn btn-default" id="btn-search" data-dismiss="modal">Search</button>
+                            </div>
+                        </div>
+                </div>
+            </div>
+        </div>
+    </header>
+    <div class="content">
+        <div class="load">
+            <div class="loader"></div>
+        </div>
+        <div id=main></div>
+    </div>
+
+    <script>
+            //loading...
+        $(window).on('load',function(event){
+            $('div').removeClass('content');
+            $(".load").delay(1000).fadeOut('fast',function(){
+            // hiện top heading
+                $(document).ready(function () { 
+                    fetch('https://gnews.io/api/v4/top-headlines?token=028020e5a40d9b3130b00fc9acec3d61&lang=en')
+                        .then(function (response) {
+                            return response.json();
+                        })
+                        .then(function (data) {
+                            console.log(data);
+                            let post = data.articles;
+                            let htmls = post.map(function(post){
+                                return `<div class="article">
+                                            <div>
+                                            <img src=${post.image} class="img">
+                                            </div>
+                                            <div class="main-art">
+                                                <a href="${post.url} class="btn" target="_blank"><li><h3>${post.title}</h3></li></a>
+                                                <i><li>${post.publishedAt}</li></i>
+                                                <li>${post.description}</li>
+                                            </div>
+                                        </div>`;
+                            });
+                        var html= htmls.join('');
+                        document.getElementById("main").innerHTML=html;
+                    });
+                });
+            });
+        });
+            //Search keywork
+            $(document).ready(function(){
+                $("#btn-search").click(function(){
+                    $('div').addClass('content');
+                    $(".load").fadeIn();
+                    //khai báo biến
+                    var keywork =$("#searchKeywork").val();
+                    var from = $("#timeFrom").val();
+                    var to= $("#timeTo").val();
+                    //search
+                    var url ='https://gnews.io/api/v4/search?q=';
+                    if(from==""&&to==""){
+                        url=url+keywork+'&token=028020e5a40d9b3130b00fc9acec3d61&lang=en';
+                    } else{
+                    //chuyển kiểu dữ liệu
+                        var dateFrom = new Date(from).toISOString();
+                        var dateTo = new Date(to).toISOString();
+                        dateFrom = dateFrom.substr(0,19);
+                        dateTo = dateTo.substr(0,19);
+                        console.log(dateFrom);
+                        console.log(dateTo);
+                        url = url+ keywork+'&token=028020e5a40d9b3130b00fc9acec3d61&from='+dateFrom+'Z&to='+dateTo+'Z&lang=en'; 
+                    }
+                        console.log(url);
+                        
+                        fetch(url)
+                            .then(function (response) {
+                                return response.json();
+                            })
+                            .then(function (data) {
+                                console.log(data);
+                            let post = data.articles;
+                            let htmls = post.map(function(post){
+                                return `<div class="article">
+                                            <div>
+                                            <img src=${post.image} class="img">
+                                            </div>
+                                            <div class="main-art">
+                                                <a href="${post.url} class="btn" target="_blank"><li><h3>${post.title}</h3></li></a>
+                                                <i><li>${post.publishedAt}</li></i>
+                                                <li>${post.description}</li>
+                                            </div>
+                                        </div>`;
+                                    });
+                                var html= htmls.join('');
+                                document.getElementById("main").innerHTML=html;
+                            });
+                    $('div').removeClass('content');
+                    $(".load").delay(1000).fadeOut('fast');     
+                });
+            });
+
+    </script>
+</body>
+</html>
